@@ -93,7 +93,7 @@ mas por serem poucos componentes é possível escrever sem loops de iteração.
 ### Transform2D::transform_vector
 
 Assim como na `transform_point` multiplicamos o vetor pela transformação,
-porém não aplicamos a transformação (ignoramos a terceira dimensão hipotética).
+porém não aplicamos a translação (ignoramos a terceira dimensão hipotética).
 Isso se torna útil para mudanças em direções (como o nome do parâmetro 
 `const Vector2D& direction` sugere)  porque ajuda na performance por reduzir a quantidade de cálculos e instruções em momentos mais críticos de processamento.
 Por exemplo: um carro que vira para a *direita* pode usar a mesma matriz de transformação para a posição do modelo do carro e sua direção.
