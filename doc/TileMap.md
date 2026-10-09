@@ -14,7 +14,7 @@ ou `WALL_TILE` (parede).
 ## carveRect e carveLeaves (auxiliares)
 
 Antes das funções membro, há dois auxiliares dentro de um namespace
-anônimo:
+anônimo (isso é feito para ter linkagem interna):
 
 - `carveRect` escava um retângulo, ou seja, troca as células dele para
   `EMPTY_TILE`. Ele faz o *clamp* dos limites na matriz, então mesmo que
