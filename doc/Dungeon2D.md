@@ -18,8 +18,8 @@ As restrições que a geração precisa respeitar são:
 ## Constantes
 
 Para não espalhar números mágicos pelo código, algumas constantes são
-definidas no começo do arquivo (dentro de um namespace anônimo, já que só
-interessam aqui):
+definidas no começo do arquivo (dentro de um namespace anônimo, para ter 
+linkagem interna, já que só interessam aqui):
 
 - `ROOM_MIN` = 5, o menor lado de uma sala;
 - `CORRIDOR_W` = 3, a largura do corredor;
