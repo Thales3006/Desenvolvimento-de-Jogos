@@ -12,6 +12,16 @@
   but the `doc/` explanations of the code are the students' work. Do not
   auto-generate or rewrite files in `doc/`.
 
+## Commit conventions
+
+- Use **Conventional Commits**, and keep the message to a **single line**. If a
+  commit needs more than one line to explain it, the commit is too large — split
+  it into smaller commits.
+- For any change to `source/` or `doc/`, the scope is the homework it belongs
+  to: `hw<N>`, where `hw` abbreviates *homework* and `<N>` is the homework
+  number (`hw1`, `hw2`, `hw3`, ...). For example `feat(hw1): ...`,
+  `docs(hw3): ...`.
+
 ## Branch: `sfml-tilemap-test`
 
 **This branch exists only to visually test the labyrinth/dungeon (tilemap)
@@ -33,14 +43,16 @@ unchanged, so what it shows is exactly the shipped pipeline.
 
 ### Build & run
 
-SFML 3 is required. On this machine it is provided by nix, so point CMake at it
-via `CMAKE_PREFIX_PATH`:
+SFML 3 is required. The reproducible way is the flake in `sandbox/`, which
+provides SFML 3, CMake and a C++ toolchain:
 
 ```sh
-export CMAKE_PREFIX_PATH=/nix/store/rn705kas0215g9g37jx5hfkdfdrrs1sd-sfml-3.0.2:$CMAKE_PREFIX_PATH
+nix develop ./sandbox            # enter the dev shell (SFML/CMake on PATH)
 cmake -S sandbox -B sandbox/build
 cmake --build sandbox/build
 ./sandbox/build/tilemap_sandbox
 ```
 
-(Elsewhere, any SFML 3 install found by `find_package(SFML 3 ...)` works.)
+Run from the repo root so the sandbox can reach `../source`. Without nix, any
+SFML 3 install found by `find_package(SFML 3 ...)` works; if CMake can't locate
+it, point it there with `export CMAKE_PREFIX_PATH=<sfml-prefix>:$CMAKE_PREFIX_PATH`.
