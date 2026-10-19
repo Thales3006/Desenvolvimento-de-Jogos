@@ -80,6 +80,12 @@ int main() {
         while (const std::optional<sf::Event> event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
                 window.close();
+            } else if (const auto* resized = event->getIf<sf::Event::Resized>()) {
+                // Keep a 1:1 pixel mapping: match the view size to the window's
+                // new pixel size so resizing widens/narrows the field of view
+                // instead of stretching the world.
+                camera.setSize({static_cast<float>(resized->size.x),
+                                static_cast<float>(resized->size.y)});
             } else if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                 using Key = sf::Keyboard::Key;
                 if (key->code == Key::Escape) { window.close(); continue; }
