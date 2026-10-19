@@ -10,7 +10,10 @@
  * Everything the game actually ships (TileMap, Dungeon2D, Global conventions)
  * is reused unchanged; only this file knows about SFML.
  *
- * Controls: WASD / arrow keys to move, Esc or window close to quit.
+ * Movement is discrete: each key press steps the player exactly one tile, and
+ * steps into walls (or off the map) are rejected, so the player stays on floor.
+ *
+ * Controls: WASD / arrow keys to move one tile, Esc or window close to quit.
  */
 
 #include <SFML/Graphics.hpp>
@@ -27,9 +30,6 @@ namespace {
 // Size of the test dungeon, in tiles.
 constexpr int   DUNGEON_W = 60;
 constexpr int   DUNGEON_H = 40;
-
-// The player moves at this many pixels per second (TILE_SIZE/s * factor).
-constexpr float PLAYER_SPEED = 5.0f * TILE_SIZE;
 
 // A thin inset so neighbouring tiles read as a grid rather than one blob.
 constexpr float TILE_INSET = 1.0f;
@@ -50,17 +50,18 @@ int main() {
     TileMap map;
     map.loadFromDungeon(dungeon);
 
-    // Spawn the player at the centre of a random walkable cell.
-    int spawnCol = 0, spawnRow = 0;
-    map.randomEmptyCell(spawnCol, spawnRow);
-    Vector2D player = map.toWorld(spawnCol, spawnRow);
+    // Spawn the player on a random walkable cell. randomEmptyCell only ever
+    // returns an EMPTY_TILE, so the player never starts inside a wall. The
+    // player's state is the cell it occupies, not a continuous position.
+    int playerCol = 0, playerRow = 0;
+    map.randomEmptyCell(playerCol, playerRow);
 
     // --- Window + camera ----------------------------------------------------
     sf::RenderWindow window(sf::VideoMode({1024u, 768u}),
                             "TileMap sandbox (sfml-tilemap-test)");
     window.setVerticalSyncEnabled(true);
 
-    sf::View camera(toSf(player), {1024.f, 768.f});
+    sf::View camera(toSf(map.toWorld(playerCol, playerRow)), {1024.f, 768.f});
 
     // Reusable shapes drawn every frame.
     sf::RectangleShape tile({TILE_SIZE - 2.f * TILE_INSET,
@@ -74,34 +75,44 @@ int main() {
     const sf::Color wallColor(40, 44, 52);
     const sf::Color floorColor(90, 98, 110);
 
-    sf::Clock clock;
-
     // --- Main loop ----------------------------------------------------------
     while (window.isOpen()) {
         while (const std::optional<sf::Event> event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
                 window.close();
             } else if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
-                if (key->code == sf::Keyboard::Key::Escape) window.close();
+                using Key = sf::Keyboard::Key;
+                if (key->code == Key::Escape) { window.close(); continue; }
+
+                // Discrete movement: one key press == one single-tile step.
+                int stepCol = 0, stepRow = 0;
+                switch (key->code) {
+                    case Key::A: case Key::Left:  stepCol = -1; break;
+                    case Key::D: case Key::Right: stepCol =  1; break;
+                    case Key::W: case Key::Up:    stepRow = -1; break;
+                    case Key::S: case Key::Down:  stepRow =  1; break;
+                    default: break;
+                }
+                if (stepCol != 0 || stepRow != 0) {
+                    const int targetCol = playerCol + stepCol;
+                    const int targetRow = playerRow + stepRow;
+                    // Reject steps off the map or into a wall; the player only
+                    // ever stands on an EMPTY_TILE.
+                    const bool walkable =
+                        targetCol >= 0 && targetCol < map.width()  &&
+                        targetRow >= 0 && targetRow < map.height() &&
+                        !map.isWall(targetCol, targetRow);
+                    if (walkable) {
+                        playerCol = targetCol;
+                        playerRow = targetRow;
+                    }
+                }
             }
         }
 
-        const float dt = clock.restart().asSeconds();
-
-        // Movement: read the keyboard directly, normalize so diagonals aren't
-        // faster, then step the world position.
-        Vector2D dir;
-        using Key = sf::Keyboard::Key;
-        if (sf::Keyboard::isKeyPressed(Key::A) || sf::Keyboard::isKeyPressed(Key::Left))  dir.x -= 1.f;
-        if (sf::Keyboard::isKeyPressed(Key::D) || sf::Keyboard::isKeyPressed(Key::Right)) dir.x += 1.f;
-        if (sf::Keyboard::isKeyPressed(Key::W) || sf::Keyboard::isKeyPressed(Key::Up))    dir.y -= 1.f;
-        if (sf::Keyboard::isKeyPressed(Key::S) || sf::Keyboard::isKeyPressed(Key::Down))  dir.y += 1.f;
-        if (dir.length_squared() > EPSILON) {
-            player += dir.normalized() * (PLAYER_SPEED * dt);
-        }
-
-        // Camera always focuses on the player.
-        camera.setCenter(toSf(player));
+        // Camera always focuses on the player's cell.
+        const Vector2D playerWorld = map.toWorld(playerCol, playerRow);
+        camera.setCenter(toSf(playerWorld));
         window.setView(camera);
 
         // --- Render ---------------------------------------------------------
@@ -128,7 +139,7 @@ int main() {
             }
         }
 
-        playerShape.setPosition(toSf(player));
+        playerShape.setPosition(toSf(playerWorld));
         window.draw(playerShape);
 
         window.display();
