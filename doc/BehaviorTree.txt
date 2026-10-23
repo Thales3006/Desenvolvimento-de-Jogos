@@ -1,0 +1,82 @@
+# BehaviorTree
+
+Nesse arquivo são definidas diversas classes que herdam de BehaviourTree
+e a Própria BehaviorTree.
+As classe que herdam dela são: SelectorNode, SequenceNode, ConditionNode
+e ActionNode.
+
+Todas essas classes definem construtores que tem como ideia principal
+mover dados dos objetos passados por parametros (ou seja, não copiam
+os valores, usam os objetos em si).
+
+Também implementam a classe tick que seria equivalente a uma iteração do jogo.
+Nesse tick, os nós da árvores são explorados seguindo a lógica de cada nó para
+a tomada de decisões de forma recursiva. Ao retornar, são retornados BTResults
+(2 informações: comando atual e se o nó falhou ou não). Com isso a árvore segue
+decidindo até o fim em que retorna apenas o comando como uma string, como uma
+forma de uma interface em que o usuário da "engine" não e preucupe com a lógica
+e retornos internos.
+
+## SelectorNode
+
+### SelectorNode::SelectorNode(std::vector<BTNodePtr> children)
+
+Essa função apenas controi um nó de seleção com os filhos passados por
+parâmetro, os filhos são movidos para dentro do objeto.
+
+### SelectorNode::tick(const BTContext& context)
+
+Percorre os filhos da esquerda para a direita e dá tick em cada um. Retorna o
+resultado do primeiro filho que der sucesso, carregando o comando dele. Se
+nenhum filho der sucesso, o seletor falha e não carrega comando nenhum.
+
+## SequenceNode
+
+### SequenceNode::SequenceNode(std::vector<BTNodePtr> children)
+
+Essa função apenas controi um nó de sequência com os filhos passados por
+parâmetro, os filhos são movidos para dentro do objeto.
+
+### SequenceNode::tick(const BTContext& context)
+
+Percorre os filhos da esquerda para a direita e dá tick em cada um. Para no
+primeiro filho que falhar, e nesse caso a sequência falha sem carregar comando.
+Só dá sucesso se todos os filhos derem sucesso, e nesse caso carrega o último
+comando não vazio que apareceu no caminho.
+
+## ConditionNode
+
+### ConditionNode::ConditionNode(std::string name)
+
+Essa função apenas controi um nó de condição com o nome passado por parâmetro,
+o nome é movido para dentro do objeto.
+
+### ConditionNode::tick(const BTContext& context)
+
+Procura no contexto um fato com o mesmo nome guardado no nó. Dá sucesso se achar
+esse nome com um valor diferente de zero, caso contrário falha. De qualquer
+forma não carrega comando nenhum.
+
+## ActionNode
+
+### ActionNode::ActionNode(std::string command)
+
+Essa função apenas controi um nó de ação com o comando passado por parâmetro,
+o comando é movido para dentro do objeto.
+
+### ActionNode::tick(const BTContext& context)
+
+Sempre dá sucesso e carrega o seu comando. Por isso ignora o contexto.
+
+## BehaviorTree
+
+### BehaviorTree::BehaviorTree(BTNodePtr root)
+
+Essa função apenas controi a árvore com a raiz passada por parâmetro, a raiz é
+movida para dentro do objeto.
+
+### BehaviorTree::tick(const BTContext& context)
+
+Dá tick na raiz da árvore e retorna só o comando do resultado dela, escondendo
+o BTResult interno. Se a raiz falhar o comando vem vazio, significando que não
+há comando nesse tick.
