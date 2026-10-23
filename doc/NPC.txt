@@ -1,0 +1,4 @@
+# NPC
+
+Todas as funções já foram definides E declaradas no header,
+logo não há o que definir neste arquivo.
