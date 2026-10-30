@@ -1,0 +1,72 @@
+# PathFind
+
+PathFind.cpp define as funções declaradas em `PathFind.hpp`.
+A ideia da classe é achar o menor caminho entre dois pontos do mundo sobre a
+matriz de tiles usando o algoritmo A*, onde uma célula só é andável quando
+o valor dela é `EMPTY_TILE`. Os pontos entram em pixels e são convertidos para
+índices de célula seguindo a convenção do `Global.hpp`, e o caminho é devolvido
+em pixels também, com cada ponto sendo o centro de uma célula.
+
+## PathFind::PathFind(const int* grid, int width, int height)
+
+Essa função apenas guarda o ponteiro da matriz e as dimensões dela. A matriz
+não é copiada, só referenciada, então ela precisa continuar viva enquanto o
+objeto existir.
+
+## octile
+
+Essa função fica num namespace anônimo para ter linkagem interna, já que só
+interessa dentro desse arquivo, da mesma forma que as constantes do
+Dungeon2D.cpp.
+Ela é a heurística do A*, ou seja, uma estimativa de quanto custa ir de uma
+célula até o alvo caso não houvesse nenhuma parede no caminho.
+Como o movimento é em 8 direções, o trajeto mais barato usa o máximo de
+diagonais possível, cada uma fechando as duas distâncias ao mesmo tempo e
+custando `sqrt(2)`, e o restante em linha reta custando 1, então a conta é
+`sqrt(2) * menor_distância + (maior - menor)`.
+O ponto importante é que essa estimativa nunca ultrapassa o custo real,
+e é isso que garante que o A* encontre o caminho ótimo.
+
+## PathFind::findPath
+
+Essa é a função que faz todo o trabalho. Primeiro ela converte o startWorld e
+o goalWorld em (col, row) com floor(x / TILE_SIZE) e floor(y / TILE_SIZE).
+Em seguida testa as pré-condições com dois lambdas, o inRange verifica se a
+célula está dentro da matriz e o walkable verifica se está dentro e é
+`EMPTY_TILE`, e se o início ou o fim não forem células andáveis e válidas a
+função já retorna vazio, porque não existe caminho possível.
+
+Antes da busca são criados três vetores do tamanho da matriz, todos em
+row-major igual à grid. O `gScore` guarda o menor custo conhecido para chegar
+em cada célula, começando todos em infinito, o cameFrom guarda de qual célula
+se veio para chegar em cada uma, usado para remontar o caminho depois, e o
+closed marca as células que já foram totalmente exploradas.
+
+O centro do algoritmo é a fila de prioridade open, uma `std::priority_queue`
+que sempre devolve primeiro a célula com o menor `f = g + h`, ou seja, o custo
+já gasto mais a estimativa do que falta.
+A busca começa inserindo a célula inicial com `g = 0`. Uma decisão de
+implementação aqui é que a mesma célula pode entrar mais de uma vez na fila
+quando um caminho melhor para ela é encontrado, e as entradas antigas são
+apenas ignoradas quando saem da fila, verificando o `closed`, o que é mais
+simples do que atualizar a fila.
+
+No laço principal a célula mais barata é sempre retirada.
+Se ela for o alvo a busca para, porque chegou pelo melhor custo, se ela já
+estava closed é ignorada por ser uma entrada antiga, e caso contrário é marcada
+como closed e seus 8 vizinhos são examinados. Para cada vizinho andável é feita
+a verificação que evita cortar quina, onde um movimento diagonal só é aceito se
+as duas células ortogonais ao lado também forem andáveis, senão o
+caminho passaria raspando o canto de uma parede. Se chegar nesse
+vizinho pelo caminho atual for mais barato do que o custo já conhecido, o
+`gScore` é atualizado, o cameFrom registra de onde se veio e o vizinho é
+reinserido na fila com o novo f, lembrando que o passo custa 1 se for reto e
+√2 se for diagonal.
+
+Quando o laço termina, se o alvo ainda estiver com custo infinito é porque não
+foi possível alcançá-lo, então a função retorna vazio. Se foi alcançado,
+a reconstrução começa no alvo e segue o cameFrom para trás até o início,
+convertendo cada célula para o centro dela em pixels com (col + 0.5) * TILE_SIZE
+e o mesmo no y.
+Como esse percurso vai do fim para o começo, é feito um reverse no final para
+entregar o caminho na ordem correta, do início para o alvo.
