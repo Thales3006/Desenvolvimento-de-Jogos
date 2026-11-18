@@ -40,6 +40,8 @@ constexpr EntityId INITIAL_ENTITY_ID = 1000;
 // --- Tile matrix legend ----------------------------------------------------
 constexpr int EMPTY_TILE = 0;   ///< A free, walkable cell.
 constexpr int WALL_TILE  = 1;   ///< A solid cell (blocks movement).
+constexpr int EXIT_TILE  = 2;   ///< The exit cell (win condition).
+constexpr int WATER_TILE = 3;   ///< Water cell (kills on contact; wind zone pushes up).
 
 // --- Spatial constants -----------------------------------------------------
 /// Common default size, in pixels, of a tile, a sprite and an NPC: they are
