@@ -12,6 +12,29 @@
   but the `doc/` explanations of the code are the students' work. Do not
   auto-generate or rewrite files in `doc/`.
 
+## The game: Dungeon Escape
+
+**Concept:** player spawns in the room furthest from the exit of a BSP-generated dungeon and must fight their way out.
+
+> All design decisions below came entirely from the user, not from AI suggestions.
+
+### Decisions
+
+| Requirement | Decision |
+|---|---|
+| Scenario | BSP dungeon (`Dungeon2D`) rasterised into a `TileMap` |
+| Player | Arrow/WASD movement; starts with a pistol (1 bullet); can pick up a shotgun |
+| Enemy AI | **State machine** — at minimum: Idle → Chase → Attack |
+| Projectile | Enemies shoot single bullets; player starts with pistol, can find shotgun (fires 3 bullets in a spread) |
+| Item adicional | **Shotgun pickup** scattered in rooms — player switches to it on collect |
+| Physics detail | Some rooms have open areas with water tiles (instant death on contact); an AABB zone applies an upward wind force inside them |
+| Score (placar) | Lives (lost on hit or falling in water) + points (per enemy killed) |
+| Exit condition | Reach the exit tile/room |
+
+### Where the game lives
+
+All game code goes in `source/` alongside the engine classes. The game is **not** a sandbox — it is the final deliverable, built with SFML (same CMake setup as `sandbox/`).
+
 ## Branch: `sfml-tilemap-test`
 
 **This branch exists only to visually test the labyrinth/dungeon (tilemap)
