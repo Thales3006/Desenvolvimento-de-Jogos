@@ -60,7 +60,7 @@ SFML 3 is required. On this machine it is provided by nix, so point CMake at it
 via `CMAKE_PREFIX_PATH`:
 
 ```sh
-export CMAKE_PREFIX_PATH=/nix/store/rn705kas0215g9g37jx5hfkdfdrrs1sd-sfml-3.0.2:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=/nix/store/yvs0p9n6lxgf649q89gyqhr9h44z8dlp-sfml-3.0.2:$CMAKE_PREFIX_PATH
 cmake -S sandbox -B sandbox/build
 cmake --build sandbox/build
 ./sandbox/build/tilemap_sandbox
