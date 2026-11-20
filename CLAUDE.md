@@ -56,14 +56,12 @@ unchanged, so what it shows is exactly the shipped pipeline.
 
 ### Build & run
 
-SFML 3 is required. On this machine it is provided by nix, so point CMake at it
-via `CMAKE_PREFIX_PATH`:
+SFML 3 is required. Install via `nix profile add nixpkgs#sfml`; headers and libs
+land in `~/.nix-profile/include` and `~/.nix-profile/lib` automatically.
 
 ```sh
-export CMAKE_PREFIX_PATH=/nix/store/yvs0p9n6lxgf649q89gyqhr9h44z8dlp-sfml-3.0.2:$CMAKE_PREFIX_PATH
-cmake -S sandbox -B sandbox/build
+cmake -S sandbox -B sandbox/build \
+  -DCMAKE_PREFIX_PATH="$HOME/.nix-profile"
 cmake --build sandbox/build
 ./sandbox/build/tilemap_sandbox
 ```
-
-(Elsewhere, any SFML 3 install found by `find_package(SFML 3 ...)` works.)
