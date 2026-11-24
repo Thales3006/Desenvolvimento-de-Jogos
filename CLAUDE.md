@@ -14,7 +14,7 @@
 
 ## The game: Dungeon Escape
 
-**Concept:** player spawns in the room furthest from the exit of a BSP-generated dungeon and must fight their way out.
+**Concept:** escape from a Soviet prison (dungeon style). The player spawns in the room furthest from the exit of a BSP-generated dungeon. The exit (a lock) needs a key, which one randomly chosen guard carries, so the player must explore and fight the guards to get out.
 
 > All design decisions below came entirely from the user, not from AI suggestions.
 
@@ -23,17 +23,20 @@
 | Requirement | Decision |
 |---|---|
 | Scenario | BSP dungeon (`Dungeon2D`) rasterised into a `TileMap` |
-| Player | Arrow/WASD movement; starts with a pistol (1 bullet); can pick up a shotgun |
-| Enemy AI | **State machine** — at minimum: Idle → Chase → Attack |
-| Projectile | Enemies shoot single bullets; player starts with pistol, can find shotgun (fires 3 bullets in a spread) |
-| Item adicional | **Shotgun pickup** scattered in rooms — player switches to it on collect |
-| Physics detail | Some rooms have open areas with water tiles (instant death on contact); an AABB zone applies an upward wind force inside them |
-| Score (placar) | Lives (lost on hit or falling in water) + points (per enemy killed) |
-| Exit condition | Reach the exit tile/room |
+| Player | Arrow/WASD movement; pistol only (no shotgun); starts with 12 bullets (limited ammo) |
+| Enemy (guards) | Same look for all guards. Armed with firearms (single bullets). One random guard carries the key and drops it on death; some guards drop ammo on death |
+| Enemy AI | **State machine** — Idle → Chase → Attack, plus Return (go back to spawn and idle). Seeing the player (line of sight through the tile map, so walls block it) triggers Chase. Losing sight starts a short tolerance timer (~0.5 s); when it runs out the guard goes to Return. Seeing the player again at any time goes back to Chase |
+| Projectile | Guards and the player shoot single bullets |
+| Item adicional | **Key** (held by one guard, opens the exit) and **ammo drops** (from some guards) |
+| Physics detail | Some rooms (small chance) have a wind zone: fans on one side push **only the player** horizontally toward the other side, where water tiles are. An AABB zone applies the horizontal wind force inside it |
+| Water | Falling into water costs one life (it does not end the game by itself) |
+| Score (placar) | Text scoreboard with lives (start with 3; lost on hit or falling in water) + points (for each guard killed and for picking up the key) |
+| Lives / restart | Losing one life: player continues in the same place. Losing all lives: the game restarts |
+| Exit condition | Reach the exit (lock) tile **holding the key** |
 
 ### Where the game lives
 
-All game code goes in `source/` alongside the engine classes. The game is **not** a sandbox — it is the final deliverable, built with SFML (same CMake setup as `sandbox/`).
+All game code goes in `source/` alongside the engine classes. The game is **not** a sandbox — it is the final deliverable, built with SFML using the top-level `Makefile` (no CMake).
 
 ## Branch: `sfml-tilemap-test`
 
